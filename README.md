@@ -1,4 +1,4 @@
-Bitcoin Transaction Parser
+### Bitcoin Transaction Parser
 
 Project: Command line tool for parsing raw transactions
 
