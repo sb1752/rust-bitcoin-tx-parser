@@ -25,9 +25,7 @@ cargo run -- [raw transaction hex]
 
 ### Testing
 
-Raw transactions are placed in the `tests/transactions` folder
-The expected parsed responses are placed in the `tests/expected` folder
-Can run tests to confirm that raw transactions are properly parsed with:
+Raw transactions are placed in the `tests/transactions` folder. The expected parsed responses are placed in the `tests/expected` folder. Can run tests to confirm that raw transactions are properly parsed with:
 ```
 cargo test
 ```
