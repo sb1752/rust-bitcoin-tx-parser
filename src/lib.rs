@@ -30,22 +30,15 @@ pub fn get_args() -> MyResult<Config> {
 
 pub fn run(config: Config) -> MyResult<()> {
     let bytes = Vec::<u8>::from_hex(config.raw_transaction)?;
-    let mut byte_array = &bytes[..];
+    let mut byte_slice = &bytes[..];
 
     // version is 4 bytes
-    let mut version = [0; 4];
-    byte_array.read(&mut version)?;
+    let mut buffer = [0; 4];
+    byte_slice.read(&mut buffer)?;
     // convert bytes to integer using little endian
-    let version_num = u32::from_le_bytes(version);
+    let version_num = u32::from_le_bytes(buffer);
 
     println!("The version is: {:?}", version_num);
-
-    // input count is 1 byte
-    let mut inputs = [0; 1];
-    byte_array.read(&mut inputs)?;
-    let inputs_num = u8::from_le_bytes(inputs);
-
-    println!("The number of inputs is: {:?}", inputs_num);
 
     Ok(())
 }

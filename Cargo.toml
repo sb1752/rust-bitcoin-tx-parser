@@ -8,4 +8,5 @@ edition = "2021"
 [dependencies]
 clap = "2.33"
 hex = "0.4.3"
+assert_cmd = "2"
 
