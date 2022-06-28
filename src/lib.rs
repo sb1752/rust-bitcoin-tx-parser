@@ -4,13 +4,19 @@ use std::error::Error;
 use std::io::Read;
 
 #[derive(Debug)]
-pub struct Config {
-    raw_transaction: String,
+pub struct RawTransaction {
+    hex: String,
+}
+
+#[derive(Debug)]
+#[allow(dead_code)] // remove warnings that fields are never read
+struct ParsedTransaction {
+    version: u32,
 }
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
 
-pub fn get_args() -> MyResult<Config> {
+pub fn get_args() -> MyResult<RawTransaction> {
     let matches = App::new("Bitcoin Transaction Parser")
         .version("0.1.0")
         .author("Shaan Batra")
@@ -23,22 +29,24 @@ pub fn get_args() -> MyResult<Config> {
         )
         .get_matches();
 
-    Ok(Config {
-        raw_transaction: matches.value_of("raw_transaction").unwrap().to_string(),
+    Ok(RawTransaction {
+        hex: matches.value_of("raw_transaction").unwrap().to_string(),
     })
 }
 
-pub fn run(config: Config) -> MyResult<()> {
-    let bytes = Vec::<u8>::from_hex(config.raw_transaction)?;
+pub fn run(raw_transaction: RawTransaction) -> MyResult<()> {
+    let bytes = Vec::<u8>::from_hex(raw_transaction.hex)?;
     let mut byte_slice = &bytes[..];
 
     // version is 4 bytes
     let mut buffer = [0; 4];
     byte_slice.read(&mut buffer)?;
     // convert bytes to integer using little endian
-    let version_num = u32::from_le_bytes(buffer);
+    let version = u32::from_le_bytes(buffer);
 
-    println!("The version is: {:?}", version_num);
+    let parsed_tx = ParsedTransaction { version };
+
+    println!("{:?}", parsed_tx);
 
     Ok(())
 }
