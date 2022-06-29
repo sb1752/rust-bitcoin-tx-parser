@@ -6,10 +6,9 @@ type TestResult = Result<(), Box<dyn Error>>;
 
 const PRG: &str = "rust_bitcoin_tx_parser";
 
-#[test]
-fn parse_transaction() -> TestResult {
-    let input = fs::read_to_string("tests/transactions/tx1.txt")?;
-    let expected = fs::read_to_string("tests/expected/tx1.txt")?;
+fn parse_transaction(transaction: &str) -> TestResult {
+    let input = fs::read_to_string(format!("tests/transactions/{}.txt", transaction))?;
+    let expected = fs::read_to_string(format!("tests/expected/{}.txt", transaction))?;
 
     Command::cargo_bin(PRG)?
         .arg(input)
@@ -18,4 +17,14 @@ fn parse_transaction() -> TestResult {
         .stdout(expected);
 
     Ok(())
+}
+
+#[test]
+fn parse_tx1() -> TestResult {
+    parse_transaction("tx1")
+}
+
+#[test]
+fn parse_tx3() -> TestResult {
+    parse_transaction("tx3")
 }
