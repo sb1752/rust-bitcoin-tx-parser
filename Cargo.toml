@@ -9,4 +9,4 @@ edition = "2021"
 clap = "2.33"
 hex = "0.4.3"
 assert_cmd = "2"
-
+buffer = "0.1.9"
