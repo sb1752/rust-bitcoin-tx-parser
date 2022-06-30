@@ -22,7 +22,7 @@ struct Input {
     txid: String,
     vout: u32,
     scriptSig: String,
-    sequence: u32,
+    sequence: String,
 }
 
 type MyResult<T> = Result<T, Box<dyn Error>>;
@@ -100,7 +100,7 @@ fn read_inputs(bytes_slice: &mut &[u8], input_count: u64) -> MyResult<Vec<Input>
         let txid = read_transaction(bytes_slice)?;
         let vout = read_4_bytes(bytes_slice)?;
         let scriptSig = read_script_sig(bytes_slice)?;
-        let sequence = read_4_bytes(bytes_slice)?;
+        let sequence = format!("{:#x}", read_4_bytes(bytes_slice)?);
 
         inputs.push(Input {
             txid,
