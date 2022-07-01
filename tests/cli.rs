@@ -33,3 +33,13 @@ fn parse_tx2() -> TestResult {
 fn parse_tx3() -> TestResult {
     parse_transaction("tx3")
 }
+
+#[test]
+fn parse_tx4() -> TestResult {
+    parse_transaction("tx4")
+}
+
+#[test]
+fn parse_tx5() -> TestResult {
+    parse_transaction("tx5")
+}

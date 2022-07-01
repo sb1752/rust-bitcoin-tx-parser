@@ -45,14 +45,20 @@ pub fn get_args() -> MyResult<RawTransaction> {
         .arg(
             Arg::with_name("raw_transaction")
                 .value_name("raw_transaction")
-                .help("Raw transaction hex")
-                .required(true),
+                .help("Raw transaction hex"),
         )
         .get_matches();
 
-    Ok(RawTransaction {
-        hex: matches.value_of("raw_transaction").unwrap().to_string(),
-    })
+    let hex = match matches.value_of("raw_transaction") {
+        None => {
+            let mut buffer = String::new();
+            std::io::stdin().read_line(&mut buffer)?;
+            buffer
+        }
+        Some(value) => String::from(value),
+    };
+
+    Ok(RawTransaction { hex })
 }
 
 fn read_4_bytes(bytes_slice: &mut &[u8]) -> MyResult<u32> {
