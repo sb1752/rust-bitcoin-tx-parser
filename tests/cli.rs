@@ -25,6 +25,11 @@ fn parse_tx1() -> TestResult {
 }
 
 #[test]
+fn parse_tx2() -> TestResult {
+    parse_transaction("tx2")
+}
+
+#[test]
 fn parse_tx3() -> TestResult {
     parse_transaction("tx3")
 }

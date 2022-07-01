@@ -1,0 +1,20 @@
+ParsedTransaction {
+    version: 1,
+    input_count: 1,
+    inputs: [
+        Input {
+            txid: "f4184fc596403b9d638783cf57adfe4c75c605f6356fbc91338530e9831e9e16",
+            vout: 0,
+            script_sig: "4730440220576497b7e6f9b553c0aba0d8929432550e092db9c130aae37b84b545e7f4a36c022066cb982ed80608372c139d7bb9af335423d5280350fe3e06bd510e695480914f01",
+            sequence: "0xffffffff",
+        },
+    ],
+    outputs: [
+        Output {
+            amount: 1000000000,
+            script_pub_key: "76a914340cfcffe029e6935f4e4e5839a2ff5f29c7a57188ac",
+        },
+    ],
+    locktime: 0,
+    transaction_id: "ea44e97271691990157559d0bdd9959e02790c34db6c006d779e82fa5aee708e",
+}
