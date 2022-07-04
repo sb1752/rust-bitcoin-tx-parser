@@ -1,6 +1,7 @@
 use buffer::ReadBuffer;
 use clap::{App, Arg};
 use hex::FromHex;
+use serde::{Serialize, Serializer};
 use sha2::{Digest, Sha256};
 use std::error::Error;
 use std::io::Read;
@@ -10,26 +11,44 @@ pub struct RawTransaction {
     hex: String,
 }
 
-#[derive(Debug)]
-#[allow(dead_code)] // remove warnings that fields are never read
+#[derive(Serialize, Debug)]
 struct ParsedTransaction {
     version: u32,
     input_count: u64,
     inputs: Vec<Input>,
     outputs: Vec<Output>,
     locktime: u32,
-    transaction_id: String,
+    #[serde(serialize_with = "hex_encoding")]
+    transaction_id: [u8; 32],
 }
 
-#[derive(Debug)]
+fn hex_encoding<S, T>(t: T, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: AsRef<[u8]>,
+{
+    s.serialize_str(&hex::encode(t))
+}
+
+#[derive(Serialize, Debug)]
 struct Input {
-    txid: String,
+    #[serde(serialize_with = "hex_encoding")]
+    txid: [u8; 32],
     vout: u32,
     script_sig: String,
-    sequence: String,
+    #[serde(serialize_with = "hex_formatting")]
+    sequence: u32,
 }
 
-#[derive(Debug)]
+fn hex_formatting<S, T>(d: T, s: S) -> Result<S::Ok, S::Error>
+where
+    S: Serializer,
+    T: std::fmt::LowerHex,
+{
+    s.serialize_str(&format!("{:#x}", d))
+}
+
+#[derive(Serialize, Debug)]
 struct Output {
     amount: u64,
     script_pub_key: String,
@@ -73,11 +92,11 @@ fn read_8_bytes(bytes_slice: &mut &[u8]) -> MyResult<u64> {
     Ok(u64::from_le_bytes(buffer)) // little endian
 }
 
-fn read_transaction(bytes_slice: &mut &[u8]) -> MyResult<String> {
+fn read_transaction(bytes_slice: &mut &[u8]) -> MyResult<[u8; 32]> {
     let mut buffer = [0; 32];
     bytes_slice.read(&mut buffer)?;
     buffer.reverse(); // txids are formatted in big endian
-    Ok(hex::encode(buffer))
+    Ok(buffer)
 }
 
 fn read_compact_size(bytes_slice: &mut &[u8]) -> MyResult<u64> {
@@ -87,11 +106,11 @@ fn read_compact_size(bytes_slice: &mut &[u8]) -> MyResult<u64> {
 
     if marker[0] < 0xFD {
         num = u8::from_le_bytes(marker) as u64;
-    } else if marker[0] <= 0xFD {
+    } else if marker[0] == 0xFD {
         let mut buffer = [0; 2];
         bytes_slice.read(&mut buffer)?;
         num = u16::from_le_bytes(buffer) as u64;
-    } else if marker[0] <= 0xFE {
+    } else if marker[0] == 0xFE {
         let mut buffer = [0; 4];
         bytes_slice.read(&mut buffer)?;
         num = u32::from_le_bytes(buffer) as u64;
@@ -119,7 +138,7 @@ fn read_inputs(bytes_slice: &mut &[u8], input_count: u64) -> MyResult<Vec<Input>
         let txid = read_transaction(bytes_slice)?;
         let vout = read_4_bytes(bytes_slice)?;
         let script_sig = read_script(bytes_slice)?;
-        let sequence = format!("{:#x}", read_4_bytes(bytes_slice)?);
+        let sequence = read_4_bytes(bytes_slice)?;
 
         inputs.push(Input {
             txid,
@@ -147,7 +166,7 @@ fn read_outputs(bytes_slice: &mut &[u8], output_count: u64) -> MyResult<Vec<Outp
     Ok(outputs)
 }
 
-fn hash_raw_transaction(bytes: &[u8]) -> MyResult<String> {
+fn hash_raw_transaction(bytes: &[u8]) -> MyResult<[u8; 32]> {
     let mut hasher = Sha256::new();
     hasher.update(&bytes);
     let hash1 = hasher.finalize();
@@ -158,7 +177,7 @@ fn hash_raw_transaction(bytes: &[u8]) -> MyResult<String> {
 
     hash2.reverse(); // displayed in big endian
 
-    Ok(format!("{:x}", hash2))
+    Ok(<[u8; 32]>::from(hash2)) // formatted in hex
 }
 
 pub fn run(raw_transaction: RawTransaction) -> MyResult<()> {
@@ -193,7 +212,9 @@ pub fn run(raw_transaction: RawTransaction) -> MyResult<()> {
         transaction_id,
     };
 
-    println!("{:#?}", parsed_tx);
+    let serialized = serde_json::to_string_pretty(&parsed_tx).unwrap();
+
+    println!("{}", serialized);
 
     Ok(())
 }
