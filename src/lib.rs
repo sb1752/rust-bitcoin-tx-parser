@@ -177,7 +177,7 @@ fn hash_raw_transaction(bytes: &[u8]) -> MyResult<[u8; 32]> {
 
     hash2.reverse(); // displayed in big endian
 
-    Ok(<[u8; 32]>::from(hash2)) // formatted in hex
+    Ok(<[u8; 32]>::from(hash2))
 }
 
 pub fn run(raw_transaction: RawTransaction) -> MyResult<()> {
@@ -217,4 +217,37 @@ pub fn run(raw_transaction: RawTransaction) -> MyResult<()> {
     println!("{}", serialized);
 
     Ok(())
+}
+
+#[cfg(test)]
+mod unit_tests {
+    use super::read_compact_size;
+    use hex::FromHex;
+
+    #[test]
+    fn test_reading_compact_size() {
+        // read the next 2 bytes after marker to determine size
+        let bytes = hex::decode("fdb505").unwrap();
+        let expected_bytes = <[u8; 2]>::from_hex("b505").unwrap();
+        let expected_num = u16::from_le_bytes(expected_bytes) as u64;
+        let mut bytes_slice = &bytes[..];
+        let num = read_compact_size(&mut bytes_slice).unwrap();
+        assert_eq!(num, expected_num);
+
+        // the marker is the size
+        let bytes = hex::decode("fab505").unwrap();
+        let expected_bytes = <[u8; 1]>::from_hex("fa").unwrap();
+        let expected_num = u8::from_le_bytes(expected_bytes) as u64;
+        let mut bytes_slice = &bytes[..];
+        let num = read_compact_size(&mut bytes_slice).unwrap();
+        assert_eq!(num, expected_num);
+
+        // read the next 4 bytes after marker to determine size
+        let bytes = hex::decode("feb505aef8").unwrap();
+        let expected_bytes = <[u8; 4]>::from_hex("b505aef8").unwrap();
+        let expected_num = u32::from_le_bytes(expected_bytes) as u64;
+        let mut bytes_slice = &bytes[..];
+        let num = read_compact_size(&mut bytes_slice).unwrap();
+        assert_eq!(num, expected_num);
+    }
 }
